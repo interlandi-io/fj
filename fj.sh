@@ -1,5 +1,3 @@
-#!/bin/zsh
-
 PUSHD_PREFIX='__pushd__'
 
 fj () {

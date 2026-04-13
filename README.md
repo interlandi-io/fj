@@ -2,9 +2,7 @@
 
 Fuzzy searches directories and pushes the best match to your shell's dirstack.
 
-It's called fj because fj is really easy to type.
-
-It does not stand for file jockey/jumper unless you want it to.
+It's called filejockey because fj is really easy to type.
 
 This is great for monorepo navigation.
 
