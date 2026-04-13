@@ -1,4 +1,4 @@
-# fj — Fuzzy directory stack navigator
+# filejockey — Fuzzy directory stack navigator
 
 Fuzzy searches directories and pushes the best match to your shell's dirstack.
 
@@ -34,4 +34,12 @@ config.json  dir-a  dir-b  dir-c  other  files
 ## Install
 
 ```bash
+cargo install filejockey
+```
+
+Then add the init script to your shell RC.
+
+```bash
+# zsh
+filejockey --init > ~/.zshrc
 ```

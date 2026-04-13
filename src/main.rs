@@ -10,8 +10,33 @@ const SKIP_DIRS: &[&str] = &["node_modules", ".git", "target", "dist", ".next", 
 const PUSHD_PREFIX: &'static str = "__pushd__";
 
 fn main() -> Result<(), Error> {
+
+    let init_script = format!(r#"# --- filejockey ---
+
+fj () {{
+    if [ $# -eq 0 ]; then
+        popd
+    else
+        local result=$(filejockey "$1")
+        if [[ $result == {PUSHD_PREFIX}* ]]; then
+            pushd "${{result#{PUSHD_PREFIX}}}"
+        else 
+            echo $result
+        fi
+    fi
+}}
+
+# --- --- ---"#);
+
     let argv: Vec<String> = env::args().collect();
-    let needle = argv.get(1).unwrap();
+    let arg = argv.get(1).ok_or(anyhow!("no args received"))?;
+
+    if arg == "--init" {
+        println!("{init_script}");
+        return Ok(())
+    }
+
+    let needle = arg;
 
     let mut haystacks = Vec::new();
     ls_dirs_recurse(&PathBuf::from("."), &mut haystacks)?;
@@ -19,7 +44,7 @@ fn main() -> Result<(), Error> {
     let out = match best_match(needle, &haystacks) {
         Some(dir) => [PUSHD_PREFIX, &dir].join(""),
         None => {
-            return Err(anyhow!(format!("No match found for {needle}")))
+            return Err(anyhow!(format!("no match found for {needle}")))
         },
     };
 
