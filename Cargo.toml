@@ -2,6 +2,11 @@
 name = "filejockey"
 version = "1.0.0"
 edition = "2024"
+description = "Navigate your project/repo/monorepo way faster"
+readme = "README.md"
+repository = "https://github.com/interlandi-io/filejockey"
+license = "MIT"
+license-file = "LICENSE"
 
 [dependencies]
 anyhow = "1.0.102"
