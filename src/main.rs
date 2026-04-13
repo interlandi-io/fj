@@ -1,31 +1,37 @@
+use anyhow::{anyhow, Error};
 use frizbee::{Config, Scoring, match_list_parallel};
-use std::error::Error;
-use std::{fs};
 use std::env;
+use std::fs;
 use std::path::MAIN_SEPARATOR_STR;
 use std::path::{Path, PathBuf};
 
 const N_THREADS: usize = 4;
 const SKIP_DIRS: &[&str] = &["node_modules", ".git", "target", "dist", ".next", "build"];
+const PUSHD_PREFIX: &'static str = "__pushd__";
 
-fn main() -> Result<(), Box<dyn Error>> {
+fn main() -> Result<(), Error> {
     let argv: Vec<String> = env::args().collect();
     let needle = argv.get(1).unwrap();
 
     let mut haystacks = Vec::new();
     ls_dirs_recurse(&PathBuf::from("."), &mut haystacks)?;
 
-    let r#match = best_match(needle, &haystacks).unwrap();
+    let out = match best_match(needle, &haystacks) {
+        Some(dir) => [PUSHD_PREFIX, &dir].join(""),
+        None => {
+            return Err(anyhow!(format!("No match found for {needle}")))
+        },
+    };
 
-    let s = haystacks.get(r#match).map(|m| m.display().to_string()).unwrap();
-    println!("{s}");
+    println!("{out}");
 
     Ok(())
 }
 
-fn best_match<'a>(needle: &str, haystacks: &'a [PathBuf]) -> Option<usize> {
-    let haystacks: Vec<&str> = haystacks.iter()
-        .map(|p| p.to_str().unwrap()) // Note: panics if path is not UTF-8
+fn best_match<'a>(needle: &str, haystacks: &'a [PathBuf]) -> Option<String> {
+    let haystacks: Vec<String> = haystacks
+        .iter()
+        .map(|p| p.display().to_string()) // Note: panics if path is not UTF-8
         .collect();
 
     let config = Config {
@@ -46,10 +52,10 @@ fn best_match<'a>(needle: &str, haystacks: &'a [PathBuf]) -> Option<usize> {
 
     results.sort_by(|a, b| b.score.cmp(&a.score));
 
-    results.get(0).map(|m| m.index as usize)
+    results.get(0).map(|m| haystacks.get(m.index as usize).unwrap().clone())
 }
 
-fn ls_dirs_recurse(path: &Path, out: &mut Vec<PathBuf>) -> Result<(), Box<dyn Error>> {
+fn ls_dirs_recurse(path: &Path, out: &mut Vec<PathBuf>) -> Result<(), Error> {
     for entry in fs::read_dir(path)? {
         let entry = entry?;
         let path = entry.path();
